@@ -1,23 +1,34 @@
 package com.adematici.instagramprofilewithcompose
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -27,8 +38,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+@ExperimentalFoundationApi
 @Composable
 fun ProfileScreen(){
+    var selectedTabIntex by remember {
+        mutableStateOf(0)
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         TopBar(name = "adematiciii",modifier = Modifier.padding(16.dp))
         Spacer(modifier = Modifier.height(4.dp))
@@ -38,13 +53,49 @@ fun ProfileScreen(){
         Spacer(modifier = Modifier.height(25.dp))
         HighlightSection(
             highlights = listOf(
-                StoryHighlight(
+                ImageWithText(
                     image = painterResource(id = R.drawable.adem),
                     text = "My Highlights"
                 )
             ),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
         )
+        Spacer(modifier = Modifier.height(10.dp))
+        PostTabView(
+            imageWithText = listOf(
+                ImageWithText(
+                    image = painterResource(id = R.drawable.ic_grid),
+                    text = "Posts"
+                ),
+                ImageWithText(
+                    image = painterResource(id = R.drawable.ic_reels),
+                    text = "Reels"
+                ),
+                ImageWithText(
+                    image = painterResource(id = R.drawable.ic_igtv),
+                    text = "IGTV"
+                ),
+                ImageWithText(
+                    image = painterResource(id = R.drawable.ic_profile),
+                    text = "Profile"
+                ),
+            )
+        ){
+            selectedTabIntex = it
+        }
+        when(selectedTabIntex){
+            0 -> PostSection(
+                posts = listOf(
+                    painterResource(id = R.drawable.adem),
+                    painterResource(id = R.drawable.adem),
+                    painterResource(id = R.drawable.adem),
+                    painterResource(id = R.drawable.adem)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -305,7 +356,7 @@ fun ActionButton(
 @Composable
 fun HighlightSection(
     modifier: Modifier = Modifier,
-    highlights: List<StoryHighlight>
+    highlights: List<ImageWithText>
 ){
     LazyRow(modifier = modifier){
         items(highlights.size){
@@ -324,6 +375,72 @@ fun HighlightSection(
                     textAlign = TextAlign.Center
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun PostTabView(
+    modifier: Modifier = Modifier,
+    imageWithText: List<ImageWithText>,
+    onTabSelected: (selectedIndex: Int) -> Unit
+){
+    var selectedTabIndex by remember {
+        mutableStateOf(0)
+    }
+    val inactiveColor = Color(0xFF777777)
+    TabRow(
+        selectedTabIndex = selectedTabIndex,
+        backgroundColor = Color.Transparent,
+        contentColor = Color.Black,
+        modifier = modifier
+    ) {
+        imageWithText.forEachIndexed { index, item ->
+            Tab(
+                selected = selectedTabIndex == index,
+                selectedContentColor = Color.Black,
+                unselectedContentColor = inactiveColor,
+                onClick = {
+                    selectedTabIndex = index
+                    onTabSelected(index)
+                }
+            ) {
+                Icon(
+                    painter = item.image,
+                    contentDescription = item.text,
+                    tint = if (selectedTabIndex == index) Color.Black else inactiveColor,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@ExperimentalFoundationApi
+@Composable
+fun PostSection(
+    posts: List<Painter>,
+    modifier: Modifier = Modifier
+) {
+    LazyVerticalGrid(
+        cells = GridCells.Fixed(3),
+        modifier = modifier
+            .scale(1.01f)
+    ) {
+        items(posts.size) {
+            Image(
+                painter = posts[it],
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .border(
+                        width = 1.dp,
+                        color = Color.White
+                    )
+            )
         }
     }
 }
